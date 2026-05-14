@@ -1,3 +1,16 @@
+# WinToucher - Modification to use mouse position where you want to touch as if click was touchscreen
+
+## Instalation of modificated version
+
+```bash
+pip install poetry
+pip install pyinstaller
+poetry install
+poetry add --group dev pyinstaller
+poetry run pyinstaller --onefile --console mouse_touch_drag_p.py
+```
+
+
 > [!NOTE]
 >
 > WinToucher is still under development. The current version is a prototype and may contain bugs.
