@@ -23,21 +23,31 @@ jobs:
 
     - name: Install Poetry
       run: pip install poetry
+
+    - name: Add Poetry to PATH
+      shell: bash
+      run: echo "$USERPROFILE/.local/bin" >> $GITHUB_PATH
+
     - name: Install dependencies
+      shell: bash
       run: poetry install
+
     - name: Install PyInstaller
+      shell: bash
       run: poetry add --group dev pyinstaller
+
     - name: Build executable
+      shell: bash
       run: |
         poetry run pyinstaller --onefile --console --name "wintoucher-drag" mouse_touch_drag_p.py
-        mkdir output -Force
-        Move-Item -Path "dist\wintoucher-drag.exe" -Destination "output\wintoucher-drag.exe"
+        mkdir -p output
+        mv dist/wintoucher-drag.exe output/wintoucher-drag.exe
 
-        - name: Upload artifact
-          uses: actions/upload-artifact@v4
-          with:
-            name: wintoucher-drag-windows-x64
-            path: output/wintoucher-drag.exe
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: wintoucher-drag-windows-x64
+        path: output/wintoucher-drag.exe
 
   release:
     needs: build
