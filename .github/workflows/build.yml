@@ -1,0 +1,77 @@
+name: Build for Windows
+
+on:
+  push:
+    tags:
+      - "*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+
+    - name: Install dependencies
+      run: poetry install --only main
+
+    - name: Install PyInstaller
+      run: poetry add --group dev pyinstaller
+
+    - name: Build executable
+      run: |
+        poetry run pyinstaller --onefile --console --name "wintoucher-drag" mouse_touch_drag_p.py
+        mkdir output -Force
+        Move-Item -Path "dist\wintoucher-drag.exe" -Destination "output\wintoucher-drag.exe"
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: wintoucher-drag-windows-x64
+        path: output/wintoucher-drag.exe
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: output
+
+    - name: Display structure of downloaded files
+      run: ls -R output
+
+    - name: Debug files before release
+      run: find output -type f
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: ${{ github.ref_name }}
+        name: WinToucher ${{ github.ref_name }}
+        body: |
+          WinToucher drag executable for Windows.
+          Build created automatically with GitHub Actions.
+        draft: false
+        prerelease: true
+        files: |
+          output/wintoucher-drag-windows-x64/*
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
